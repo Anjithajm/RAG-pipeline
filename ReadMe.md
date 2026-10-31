@@ -2,24 +2,10 @@
 
 A retrieval-augmented generation (RAG) pipeline that answers questions about a PDF using only what the PDF says. Everything runs locally: PyMuPDF extracts the text, Sentence-Transformers embeds it, ChromaDB stores it, and Llama 3.2 (3B) running in Ollama writes the answer. Each answer cites the excerpts it used, with page numbers.
 
-The default document is `paper.pdf`, the paper *Hybrid-z: Enhancing the Kilo-Degree Survey bright galaxy sample photometric redshifts with deep learning* (John William et al., A&A 698, A276, 2025). Any text-based PDF works.
+The default document is `paper.pdf`. Any text-based PDF works.
 
 ## How it works
 
-```mermaid
-flowchart LR
-    A[paper.pdf] --> B[load_pdf<br/>text per page]
-    B --> C[get_hash_id<br/>SHA-256 of text]
-    B --> D[chunk_text<br/>500 chars, 50 overlap]
-    D --> E[embed_chunks<br/>all-MiniLM-L6-v2]
-    E --> F[(ChromaDB<br/>./chroma_db)]
-    C --> F
-    Q[Your question] --> G[embed question]
-    G --> H[top_score_chunks<br/>top 3, same document]
-    F --> H
-    H --> I[generate_answer<br/>llama3.2:3b via Ollama]
-    I --> J[Answer + page sources]
-```
 
 1. **Load**: PyMuPDF extracts the text of each page and keeps its page number.
 2. **Fingerprint**: a SHA-256 hash of the full extracted text becomes the document ID. It is used to avoid storing the same PDF twice and to keep searches inside the current document.
@@ -140,6 +126,3 @@ rm -rf chroma_db          # Windows: rmdir /s /q chroma_db
 - **One question per run**: the script exits after answering.
 - **Small model**: a 3B model can still misread or mis-cite an excerpt, so check the cited pages for anything important.
 
-## Sample document
-
-John William, A., Jalan, P., Bilicki, M., Hellwing, W. A., Thuruthipilly, H., & Nakoneczny, S. J. 2025, *A&A*, 698, A276. <https://doi.org/10.1051/0004-6361/202453576>. Open access under the [Creative Commons Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/).
